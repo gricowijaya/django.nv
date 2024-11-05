@@ -70,6 +70,26 @@ jobs:
       - run: exit 1
         continue-on-error: true
 
+  sast:
+    runs-on: ubuntu-20.04
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: docker run --rm -v $(pwd):/src hysnsec/bandit -r /src -f json -o /src/bandit-output.json
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Bandit
+          path: bandit-output.json
+        if: always()
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.6"
+
+      - run: python3 upload-results.py --host ${{ secrets.DOJO_HOST }} --api_key ${{ secrets.DOJO_API_TOKEN }} --engagement_id 2 --product_id 1 --lead_id 1 --environment "Production" --result_file bandit-output.json --scanner "Bandit Scan"
+
   prod:
     runs-on: ubuntu-20.04
     needs: integration
