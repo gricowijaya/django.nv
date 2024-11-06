@@ -17,6 +17,24 @@ jobs:
           pip install -r requirements.txt
           python manage.py test taskManager
 
+  oast-frontend:
+    machine: true
+    steps:
+      - checkout
+
+      - run:
+          name: Install npm packages
+          command: npm install
+
+      - run:
+          name: Run RetireJS
+          command: |
+            docker run --rm -v $(pwd):/src -w /src hysnsec/retire --outputformat json --outputpath retirejs-output.json --severity high
+
+      - store_artifacts:
+          path: retirejs-output.json
+          destination: retirejs-artifact
+
   oast:
     machine: true
     steps:
@@ -84,6 +102,14 @@ workflows:
       - oast:
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - main
+
+      - oast-frontend:
+          requires:
+            - test
           filters:
             branches:
               only:
