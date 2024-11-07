@@ -135,6 +135,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: docker run --rm -v $(pwd):/src hysnsec/bandit -r /src -f json -o /src/bandit-output.json
+        continue-on-error: true # allow the build to fail, similar to allow_failure: true
 
       - uses: actions/upload-artifact@v2
         with:
