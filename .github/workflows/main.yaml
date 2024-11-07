@@ -41,6 +41,20 @@ jobs:
           pip install -r requirements.txt
           python manage.py test taskManager
 
+  secret_scanning:
+    runs-on: ubuntu-20.04
+    needs: test
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: docker run --rm -v $(pwd):/src hysnsec/trufflehog filesystem /src --json > trufflehog-output.json
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: TruffleHog
+          path: trufflehog-output.json
+        if: always() # what is this for?
+
   oast-snyk:
     runs-on: ubuntu-20.04
     needs: test
