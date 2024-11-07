@@ -17,6 +17,17 @@ jobs:
           pip install -r requirements.txt
           python manage.py test taskManager
 
+  sast:
+    machine: true
+    steps:
+      - checkout
+
+      - run: docker run --rm -v $(pwd):/src hysnsec/bandit -r /src -f json -o /src/bandit-output.json || true
+
+      - store_artifacts:
+          path: bandit-output.json
+          destination: bandit-artifact
+
   secret_scanning:
     machine: true
     steps:
@@ -126,6 +137,14 @@ workflows:
       - test:
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - main
+
+      - sast:
+          requires:
+            - test
           filters:
             branches:
               only:
